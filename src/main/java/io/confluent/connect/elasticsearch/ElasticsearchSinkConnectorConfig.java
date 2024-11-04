@@ -400,6 +400,19 @@ public class ElasticsearchSinkConnectorConfig extends AbstractConfig {
   private static final String DATA_STREAM_TIMESTAMP_DISPLAY = "Data Stream Timestamp Field";
   private static final String DATA_STREAM_TIMESTAMP_DEFAULT = "";
 
+  //////////////
+
+  public static final String DATA_STREAM_KEY_CONFIG = "data.stream.type";
+  private static final String DATA_STREAM_KEY_DOC =
+      "Top level key int the message to be used as source for datastream configuration."
+          + "Requires nested keys ``type`` and ``dataset``. When this key is present in the "
+          + "original messages, any correspondoing configuration of the connector are superseded.";
+
+  private static final String DATA_STREAM_KEY_DISPLAY = "Data Stream Key";
+  private static final String DATA_STREAM_KEY_DEFAULT = "";
+
+  //////////////
+
   private static final String CONNECTOR_GROUP = "Connector";
   private static final String DATA_CONVERSION_GROUP = "Data Conversion";
   private static final String PROXY_GROUP = "Proxy";
@@ -886,6 +899,15 @@ public class ElasticsearchSinkConnectorConfig extends AbstractConfig {
             ++order,
             Width.LONG,
             DATA_STREAM_TIMESTAMP_DISPLAY
+        ).define(
+            DATA_STREAM_KEY_CONFIG,
+            Type.STRING,
+            DATA_STREAM_KEY_DEFAULT,
+            Importance.LOW,
+            DATA_STREAM_KEY_DOC, DATA_STREAM_GROUP,
+            ++order,
+            Width.MEDIUM,
+            DATA_STREAM_KEY_DISPLAY
     );
   }
 
@@ -988,6 +1010,10 @@ public class ElasticsearchSinkConnectorConfig extends AbstractConfig {
 
   public List<String> dataStreamTimestampField() {
     return getList(DATA_STREAM_TIMESTAMP_CONFIG);
+  }
+
+  public String dataStreamKey() {
+    return getString(DATA_STREAM_KEY_CONFIG);
   }
 
   public long flushTimeoutMs() {
