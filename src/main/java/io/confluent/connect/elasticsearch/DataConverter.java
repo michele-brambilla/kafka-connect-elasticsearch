@@ -121,7 +121,9 @@ public class DataConverter {
     }
   }
 
-  public DocWriteRequest<?> convertRecord(SinkRecord record, String index) {
+  public DocWriteRequest<?> convertRecord(
+      SinkRecord record, String index, IndexHandler indexHandler
+  ) {
     if (record.value() == null) {
       switch (config.behaviorOnNullValues()) {
         case IGNORE:
@@ -171,13 +173,10 @@ public class DataConverter {
 
     String payload = getPayload(record);
     payload = maybeAddTimestamp(payload, record.timestamp());
-    String dataStream = getDataStreamFromPayload(payload);
-    //    if (dataStream != null) {
-    //      index = dataStream;
-    //    }
+    String dataStream = indexHandler.createDataStreamName(payload);
 
-    ensureIndexExists(index);
-    checkMapping(index, record);
+    indexHandler.ensureIndexExists(index);
+    indexHandler.checkMapping(index, record);
 
     // index
     switch (config.writeMethod()) {
@@ -199,24 +198,6 @@ public class DataConverter {
     }
   }
 
-  private void ensureIndexExists(String index) {
-  //    if (!indexCache.contains(index)) {
-  //      log.info("Creating index {}.", index);
-  //      client.createIndexOrDataStream(index);
-  //      indexCache.add(index);
-  //    }
-  }
-
-  private void checkMapping(String index, SinkRecord record) {
-  //    if (!config.shouldIgnoreSchema(record.topic()) && !existingMappings.contains(index)) {
-  //      if (!client.hasMapping(index)) {
-  //        client.createMapping(index, record.valueSchema());
-  //      }
-  //      log.debug("Caching mapping for index '{}' locally.", index);
-  //      existingMappings.add(index);
-  //    }
-  }
-
   private Boolean isDataStream(ElasticsearchSinkConnectorConfig config, String optionalDataStream) {
     return config.isDataStream() | optionalDataStream != null;
   }
@@ -235,29 +216,6 @@ public class DataConverter {
 
     byte[] rawJsonPayload = JSON_CONVERTER.fromConnectData(record.topic(), schema, value);
     return new String(rawJsonPayload, StandardCharsets.UTF_8);
-  }
-
-  private String getDataStreamFromPayload(String payload) {
-    String dataStream;
-    try {
-      JsonNode jsonNode = objectMapper.readTree(payload);
-      if (!jsonNode.isObject()) {
-        throw new DataException("Top level payload contains data of Json type "
-            + jsonNode.getNodeType() + ". Required Json object.");
-      }
-      if (jsonNode.get(config.dataStreamKey()).isEmpty()) {
-        return null;
-      }
-      dataStream = String.format(
-          "%s-%s-%s",
-          String.valueOf(jsonNode.get(config.dataStreamKey()).get("type")).toLowerCase(),
-          String.valueOf(jsonNode.get(config.dataStreamKey()).get("dataset")).toLowerCase(),
-          String.valueOf(jsonNode.get(config.dataStreamKey()).get("namespace")).toLowerCase()
-      );
-    } catch (JsonProcessingException e) {
-      return null;
-    }
-    return dataStream;
   }
 
   private String maybeAddTimestamp(String payload, Long timestamp) {
