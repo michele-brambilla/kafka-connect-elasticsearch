@@ -870,7 +870,9 @@ public class ElasticsearchClientTest {
   }
 
   private void writeRecord(SinkRecord record, ElasticsearchClient client) {
-    client.index(record, converter.convertRecord(record, createIndexName(record.topic())),
+    IndexHandler indexHandler = new IndexHandler(config, client);
+    client.index(record,
+            converter.convertRecord(record, createIndexName(record.topic()), indexHandler),
             new AsyncOffsetTracker.AsyncOffsetState(record.kafkaOffset()));
   }
 }

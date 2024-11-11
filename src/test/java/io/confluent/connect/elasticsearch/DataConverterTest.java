@@ -49,6 +49,7 @@ public class DataConverterTest {
   
   private DataConverter converter;
   private Map<String, String> props;
+  private IndexHandler indexHandler;
 
   private String key;
   private String topic;
@@ -65,6 +66,7 @@ public class DataConverterTest {
     props.put(ElasticsearchSinkConnectorConfig.COMPACT_MAP_ENTRIES_CONFIG, "true");
 
     converter = new DataConverter(new ElasticsearchSinkConnectorConfig(props));
+//    indexHandler = new IndexHandler(new ElasticsearchSinkConnectorConfig(props));
     key = "key";
     topic = "topic";
     partition = 0;
@@ -320,7 +322,7 @@ public class DataConverterTest {
     converter = new DataConverter(new ElasticsearchSinkConnectorConfig(props));
 
     SinkRecord sinkRecord = createSinkRecordWithValue(null);
-    assertNull(converter.convertRecord(sinkRecord, index));
+    assertNull(converter.convertRecord(sinkRecord, index, indexHandler));
   }
 
   @Test
@@ -337,11 +339,11 @@ public class DataConverterTest {
 
     key = "";
     SinkRecord sinkRecord1 = createSinkRecordWithValue(struct);
-    assertThrows(DataException.class, () -> converter.convertRecord(sinkRecord1, index));
+    assertThrows(DataException.class, () -> converter.convertRecord(sinkRecord1, index, indexHandler));
 
     key = null;
     SinkRecord sinkRecord2 = createSinkRecordWithValue(struct);
-    assertThrows(DataException.class, () -> converter.convertRecord(sinkRecord2, index));
+    assertThrows(DataException.class, () -> converter.convertRecord(sinkRecord2, index, indexHandler));
   }
 
   @Test
@@ -352,7 +354,7 @@ public class DataConverterTest {
     props.put(ElasticsearchSinkConnectorConfig.BEHAVIOR_ON_NULL_VALUES_CONFIG, BehaviorOnNullValues.DELETE.name());
     converter = new DataConverter(new ElasticsearchSinkConnectorConfig(props));
     SinkRecord sinkRecord = createSinkRecordWithValue(null);
-    DeleteRequest actualRecord = (DeleteRequest) converter.convertRecord(sinkRecord, index);
+    DeleteRequest actualRecord = (DeleteRequest) converter.convertRecord(sinkRecord, index, indexHandler);
 
     assertEquals(key, actualRecord.id());
     assertEquals(index, actualRecord.index());
@@ -374,7 +376,7 @@ public class DataConverterTest {
     SinkRecord sinkRecord = createSinkRecordWithValue(null);
     sinkRecord.headers().addLong(externalVersionHeader, expectedExternalVersion);
 
-    DeleteRequest actualRecord = (DeleteRequest) converter.convertRecord(sinkRecord, index);
+    DeleteRequest actualRecord = (DeleteRequest) converter.convertRecord(sinkRecord, index, indexHandler);
 
     assertEquals(key, actualRecord.id());
     assertEquals(index, actualRecord.index());
@@ -399,7 +401,7 @@ public class DataConverterTest {
     SinkRecord sinkRecord = createSinkRecordWithValue(struct);
     sinkRecord.headers().addLong(externalVersionHeader, expectedExternalVersion);
 
-    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index);
+    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index, indexHandler);
 
     assertEquals(key, actualRecord.id());
     assertEquals(index, actualRecord.index());
@@ -417,7 +419,7 @@ public class DataConverterTest {
     key = null;
 
     SinkRecord sinkRecord = createSinkRecordWithValue(null);
-    assertNull(converter.convertRecord(sinkRecord, index));
+    assertNull(converter.convertRecord(sinkRecord, index, indexHandler));
   }
 
   @Test
@@ -430,7 +432,7 @@ public class DataConverterTest {
 
     SinkRecord sinkRecord = createSinkRecordWithValue(null);
     try {
-      converter.convertRecord(sinkRecord, index);
+      converter.convertRecord(sinkRecord, index, indexHandler);
       fail("should fail on null-valued record with behaviorOnNullValues = FAIL");
     } catch (DataException e) {
       // expected
@@ -445,7 +447,7 @@ public class DataConverterTest {
     converter = new DataConverter(new ElasticsearchSinkConnectorConfig(props));
 
     SinkRecord sinkRecord = createSinkRecordWithValue(new Struct(schema).put("string","test"));
-    DocWriteRequest<?> req = converter.convertRecord(sinkRecord, index);
+    DocWriteRequest<?> req = converter.convertRecord(sinkRecord, index, indexHandler);
     assertNull(req.id());
   }
 
@@ -457,7 +459,7 @@ public class DataConverterTest {
     converter = new DataConverter(new ElasticsearchSinkConnectorConfig(props));
 
     SinkRecord sinkRecord = createSinkRecordWithValue(new Struct(schema).put("string","test"));
-    DocWriteRequest<?> req = converter.convertRecord(sinkRecord, index);
+    DocWriteRequest<?> req = converter.convertRecord(sinkRecord, index, indexHandler);
     assertNotNull(req.id());
   }
 
@@ -481,7 +483,7 @@ public class DataConverterTest {
     Struct struct = new Struct(preProcessedSchema).put("string", "myValue");
     SinkRecord sinkRecord = createSinkRecordWithValue(struct);
 
-    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index);
+    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index, indexHandler);
 
     assertFalse(actualRecord.sourceAsMap().containsKey(TIMESTAMP_FIELD));
   }
@@ -495,7 +497,7 @@ public class DataConverterTest {
     Struct struct = new Struct(preProcessedSchema).put("string", "myValue");
     SinkRecord sinkRecord = createSinkRecordWithValue(struct);
 
-    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index);
+    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index, indexHandler);
     assertFalse(actualRecord.sourceAsMap().containsKey(TIMESTAMP_FIELD));
   }
 
@@ -507,7 +509,7 @@ public class DataConverterTest {
     Struct struct = new Struct(preProcessedSchema).put("string", "myValue");
     SinkRecord sinkRecord = createSinkRecordWithValue(struct);
 
-    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index);
+    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index, indexHandler);
 
     assertEquals(recordTimestamp, actualRecord.sourceAsMap().get(TIMESTAMP_FIELD));
   }
@@ -526,7 +528,7 @@ public class DataConverterTest {
     Struct struct = new Struct(preProcessedSchema).put(TIMESTAMP_FIELD, timestamp);
     SinkRecord sinkRecord = createSinkRecordWithValue(struct);
 
-    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index);
+    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index, indexHandler);
 
     assertEquals(recordTimestamp, actualRecord.sourceAsMap().get(TIMESTAMP_FIELD));
   }
@@ -547,7 +549,7 @@ public class DataConverterTest {
     Struct struct = new Struct(preProcessedSchema).put(timestampFieldMap, timestamp);
     SinkRecord sinkRecord = createSinkRecordWithValue(struct);
 
-    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index);
+    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index, indexHandler);
 
     assertEquals(timestamp, actualRecord.sourceAsMap().get(TIMESTAMP_FIELD));
   }
@@ -569,7 +571,7 @@ public class DataConverterTest {
     Struct struct = new Struct(preProcessedSchema).put(timestampFieldToUse, timestamp).put("field", "other");
     SinkRecord sinkRecord = createSinkRecordWithValue(struct);
 
-    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index);
+    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index, indexHandler);
 
     assertEquals(timestamp, actualRecord.sourceAsMap().get(TIMESTAMP_FIELD));
   }
@@ -581,7 +583,7 @@ public class DataConverterTest {
     SinkRecord record = new SinkRecord("t", 0, Schema.STRING_SCHEMA, key,
         SchemaBuilder.array(Schema.STRING_SCHEMA).build(), Arrays.asList("a", "b"), offset,
         recordTimestamp, TimestampType.CREATE_TIME);
-    converter.convertRecord(record, index);
+    converter.convertRecord(record, index, indexHandler);
   }
 
   @Test
@@ -593,7 +595,7 @@ public class DataConverterTest {
     Struct struct = new Struct(preProcessedSchema).put("string", "myValue");
     SinkRecord sinkRecord = createSinkRecordWithValue(struct);
 
-    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index);
+    IndexRequest actualRecord = (IndexRequest) converter.convertRecord(sinkRecord, index, indexHandler);
 
     assertEquals(VersionType.INTERNAL, actualRecord.versionType());
   }
