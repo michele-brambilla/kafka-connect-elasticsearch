@@ -16,9 +16,7 @@
 package io.confluent.connect.elasticsearch;
 
 import java.util.Collection;
-//import java.util.HashSet;
 import java.util.Map;
-//import java.util.Set;
 import java.util.function.BooleanSupplier;
 
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -135,100 +133,6 @@ public class ElasticsearchSinkTask extends SinkTask {
   public String version() {
     return Version.getVersion();
   }
-
-  //  private void checkMapping(String index, SinkRecord record) {
-  //    if (!config.shouldIgnoreSchema(record.topic()) && !existingMappings.contains(index)) {
-  //      if (!client.hasMapping(index)) {
-  //        client.createMapping(index, record.valueSchema());
-  //      }
-  //      log.debug("Caching mapping for index '{}' locally.", index);
-  //      existingMappings.add(index);
-  //    }
-  //  }
-
-  //  /**
-  //   * Returns the converted index name from a given topic name. Elasticsearch accepts:
-  //   * <ul>
-  //   *   <li>all lowercase</li>
-  //   *   <li>less than 256 bytes</li>
-  //   *   <li>does not start with - or _</li>
-  //   *   <li>is not . or ..</li>
-  //   * </ul>
-  //   * (<a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html#indices-create-api-path-params">ref</a>_.)
-  //   */
-  //  private String convertTopicToIndexName(String topic) {
-  //    String index = topic.toLowerCase();
-  //    if (index.length() > 255) {
-  //      index = index.substring(0, 255);
-  //    }
-  //
-  //    if (index.startsWith("-") || index.startsWith("_")) {
-  //      index = index.substring(1);
-  //    }
-  //
-  //    if (index.equals(".") || index.equals("..")) {
-  //      index = index.replace(".", "dot");
-  //      log.warn("Elasticsearch cannot have indices named {}. Index will be named {}.",
-  //      topic, index);
-  //    }
-  //
-  //    if (!topic.equals(index)) {
-  //      log.trace("Topic '{}' was translated to index '{}'.", topic, index);
-  //    }
-  //
-  //    return index;
-  //  }
-
-  //  /**
-  //   * Returns the converted datastream name from a given topic name in the form:
-  //   * {type}-{dataset}-{namespace}
-  //   * For the <code>namespace</code> (that can contain topic), Elasticsearch accepts:
-  //   * <ul>
-  //   *   <li>all lowercase</li>
-  //   *   <li>no longer than 100 bytes</li>
-  //   * </ul>
-  //   * (<a href="https://github.com/elastic/ecs/blob/master/rfcs/text/0009-data_stream-fields.md#restrictions-on-values">ref</a>_.)
-  //   */
-  //  private String convertTopicToDataStreamName(String topic) {
-  //    String namespace = config.dataStreamNamespace();
-  //    namespace = namespace.replace("${topic}", topic.toLowerCase());
-  //    if (namespace.length() > 100) {
-  //      namespace = namespace.substring(0, 100);
-  //    }
-  //    String dataStream = String.format(
-  //        "%s-%s-%s",
-  //        config.dataStreamType().toLowerCase(),
-  //        config.dataStreamDataset(),
-  //        namespace
-  //    );
-  //    return dataStream;
-  //  }
-
-  /**
-   * Returns the converted index name from a given topic name. If writing to a data stream,
-   * returns the index name in the form {type}-{dataset}-{namespace}. For both cases, Elasticsearch
-   * accepts:
-   * <ul>
-   *   <li>all lowercase</li>
-   *   <li>less than 256 bytes</li>
-   *   <li>does not start with - or _</li>
-   *   <li>is not . or ..</li>
-   * </ul>
-   * (<a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html#indices-create-api-path-params">ref</a>_.)
-   */
-  //  private String createIndexName(String topic) {
-  //    return config.isDataStream()
-  //        ? convertTopicToDataStreamName(topic)
-  //        : convertTopicToIndexName(topic);
-  //  }
-  //
-  //  private void ensureIndexExists(String index) {
-  //    if (!indexCache.contains(index)) {
-  //      log.info("Creating index {}.", index);
-  //      client.createIndexOrDataStream(index);
-  //      indexCache.add(index);
-  //    }
-  //  }
 
   private void logTrace(String formatMsg, SinkRecord record) {
     if (log.isTraceEnabled()) {

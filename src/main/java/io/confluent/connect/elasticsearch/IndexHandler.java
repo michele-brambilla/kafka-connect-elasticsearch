@@ -18,12 +18,13 @@ package io.confluent.connect.elasticsearch;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.HashSet;
-import java.util.Set;
 import org.apache.kafka.connect.errors.DataException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class IndexHandler {
   private static final Logger log = LoggerFactory.getLogger(IndexHandler.class);
