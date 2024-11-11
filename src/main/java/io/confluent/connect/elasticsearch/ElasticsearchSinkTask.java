@@ -250,14 +250,14 @@ public class ElasticsearchSinkTask extends SinkTask {
   }
 
   private void tryWriteRecord(SinkRecord sinkRecord, OffsetState offsetState) {
-    String indexName = createIndexName(sinkRecord.topic());
+    String defaultIndexName = createIndexName(sinkRecord.topic());
 
-    ensureIndexExists(indexName);
-    checkMapping(indexName, sinkRecord);
+//    ensureIndexExists(indexName);
+//    checkMapping(indexName, sinkRecord);
 
     DocWriteRequest<?> docWriteRequest = null;
     try {
-      docWriteRequest = converter.convertRecord(sinkRecord, indexName);
+      docWriteRequest = converter.convertRecord(sinkRecord, defaultIndexName);
     } catch (DataException convertException) {
       reportBadRecord(sinkRecord, convertException);
 
